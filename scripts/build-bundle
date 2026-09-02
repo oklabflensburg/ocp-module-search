@@ -1,29 +1,48 @@
 #!/usr/bin/env bash
 set -euo pipefail
-ROOT=$(cd "$(dirname "$0")/.." && pwd)
-VERSION=$(python -c 'import yaml; print(yaml.safe_load(open("module.yaml"))["version"])' 2>/dev/null || sed -n 's/^version: //p' "$ROOT/module.yaml")
-OUT="$ROOT/dist/search-$VERSION.ocp"
 
-cd "$ROOT/backend"
-uv build --wheel
-cd "$ROOT/frontend"
-pnpm build
-cd "$ROOT"
-rm -rf dist/bundle
-mkdir -p dist/bundle/backend dist/bundle/frontend
-cp module.yaml dist/bundle/
-cp backend/dist/*.whl dist/bundle/backend/
-cp -R frontend/dist/. dist/bundle/frontend/
-python - "$OUT" <<'PY'
-import pathlib, sys, zipfile
-root = pathlib.Path("dist/bundle")
-out = pathlib.Path(sys.argv[1])
-with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as archive:
-    for path in sorted(root.rglob("*")):
-        if path.is_file():
-            info = zipfile.ZipInfo(path.relative_to(root).as_posix(), (1980, 1, 1, 0, 0, 0))
-            info.external_attr = 0o644 << 16
-            archive.writestr(info, path.read_bytes(), compress_type=zipfile.ZIP_DEFLATED)
-PY
-sha256sum "$OUT" > "$OUT.sha256"
-echo "$OUT"
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+host_root="${OCP_HOST_CHECKOUT:-$repo_root/.host-contract}"
+host_python="$host_root/backend/.venv/bin/python"
+
+if [[ ! -x "$host_python" ]]; then
+  echo "Pinned host environment missing at $host_root; run scripts/prepare-host-contract first." >&2
+  exit 1
+fi
+
+expected="$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["commit"])' "$repo_root/.github/ocp-host-contract.json")"
+actual="$(git -C "$host_root" rev-parse HEAD)"
+if [[ "$actual" != "$expected" ]]; then
+  echo "Host contract mismatch: expected $expected, got $actual" >&2
+  exit 1
+fi
+
+source_commit="${SOURCE_COMMIT:-$(git -C "$repo_root" rev-parse HEAD)}"
+source_epoch="$(git -C "$repo_root" show -s --format=%ct "$source_commit" 2>/dev/null || git -C "$repo_root" show -s --format=%ct HEAD)"
+mkdir -p "$repo_root/dist"
+
+rm -rf "$repo_root/backend/build"
+(
+  cd "$repo_root/backend"
+  SOURCE_DATE_EPOCH="$source_epoch" uv build --wheel --clear
+)
+(
+  cd "$repo_root/frontend"
+  corepack pnpm build
+)
+(
+  cd "$host_root/backend"
+  "$host_python" -m app.cli.modules bundle build \
+    --manifest "$repo_root/module.yaml" \
+    --backend "$repo_root/backend/dist/ocp_module_search-0.1.0-py3-none-any.whl" \
+    --frontend "$repo_root/frontend/dist/search-0.1.0.tgz" \
+    --publisher oklabflensburg \
+    --source-reference releases/search/0.1.0 \
+    --source-repository https://github.com/oklabflensburg/ocp-module-search \
+    --source-commit "$source_commit" \
+    --source-tag v0.1.0 \
+    --build-workflow github-actions/module-release \
+    --license MIT \
+    --output "$repo_root/dist/search-0.1.0.ocp"
+)
+sha256sum "$repo_root/dist/search-0.1.0.ocp" > "$repo_root/dist/search-0.1.0.ocp.sha256"
