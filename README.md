@@ -43,3 +43,7 @@ OCP_HOST_CHECKOUT=/path/to/open-city-planner scripts/host-contract-test
 Characterize the historical Host Search implementation before functional migration.
 Provider contracts and Intelligent Search will be designed in later issues from
 real consumer requirements, rather than being invented as a generic mega-API.
+
+The completed Phase 1 evidence is documented in
+[Historical Search Characterization](docs/historical-search-characterization.md)
+and the accompanying [Search Dependency Matrix](docs/search-dependency-matrix.md).
