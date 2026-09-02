@@ -1,0 +1,17 @@
+schema_version: 1
+id: search
+name: Search
+version: 0.1.0
+description: Bootstrap for the installable Open City Planner Search module.
+compatibility:
+  host: ">=0.1.0,<1.0.0"
+  backend_sdk: ">=0.1.0,<1.0.0"
+  frontend_sdk: ">=0.1.0,<1.0.0"
+backend:
+  package: ocp-module-search
+  entrypoint: ocp_module_search.module:module
+  wheel: backend/dist/ocp_module_search-0.1.0-py3-none-any.whl
+frontend:
+  package: "@open-city-planner/search"
+  manifest: frontend/dist/module.json
+  directory: frontend/dist

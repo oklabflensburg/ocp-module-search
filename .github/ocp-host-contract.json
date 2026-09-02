@@ -1,0 +1,8 @@
+{
+  "repository": "oklabflensburg/open-city-planner",
+  "source_branch": "staging/epic-91-modular-host",
+  "commit": "UNRESOLVED-NETWORK-ACCESS-REQUIRED",
+  "host_version": ">=0.1.0,<1.0.0",
+  "backend_sdk_version": ">=0.1.0,<1.0.0",
+  "frontend_sdk_version": ">=0.1.0,<1.0.0"
+}

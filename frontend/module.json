@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "id": "search",
+  "name": "Search",
+  "version": "0.1.0",
+  "sdkVersion": ">=0.1.0 <1.0.0",
+  "entrypoint": "./index.js",
+  "contributions": [
+    {
+      "type": "capability",
+      "id": "search.bootstrap",
+      "title": "Search module bootstrap"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "name": "@open-city-planner/search",
+  "version": "0.1.0",
+  "private": false,
+  "type": "module",
+  "files": ["dist"],
+  "scripts": {
+    "build": "node scripts/build-package.mjs",
+    "typecheck": "node --check src/index.js && node --check tests/module.test.js",
+    "test": "node --test"
+  }
+}

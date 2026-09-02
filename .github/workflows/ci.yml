@@ -1,0 +1,46 @@
+name: CI
+on:
+  push:
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --frozen --extra dev
+        working-directory: backend
+      - run: uv run ruff check src tests
+        working-directory: backend
+      - run: uv run pytest
+        working-directory: backend
+      - run: uv build --wheel
+        working-directory: backend
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: pnpm, cache-dependency-path: frontend/pnpm-lock.yaml }
+      - run: pnpm install --frozen-lockfile
+        working-directory: frontend
+      - run: pnpm typecheck && pnpm test && pnpm build
+        working-directory: frontend
+  bundle-contract:
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - uses: pnpm/action-setup@v4
+        with: { version: 9 }
+      - run: uv sync --frozen --extra dev
+        working-directory: backend
+      - run: pnpm install --frozen-lockfile
+        working-directory: frontend
+      - run: scripts/build-bundle
+      - run: sha256sum --check dist/search-0.1.0.ocp.sha256
+      - run: scripts/host-contract-test

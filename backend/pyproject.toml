@@ -1,0 +1,29 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ocp-module-search"
+version = "0.1.0"
+description = "Bootstrap Search module for Open City Planner"
+readme = "../README.md"
+requires-python = ">=3.12"
+license = "MIT"
+dependencies = ["fastapi>=0.115,<1"]
+
+[project.entry-points."open_city_planner.modules"]
+search = "ocp_module_search.module:module"
+
+[project.optional-dependencies]
+dev = ["build>=1.2", "pytest>=8.3", "pyyaml>=6.0", "ruff>=0.9"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ocp_module_search"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"

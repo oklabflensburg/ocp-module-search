@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+backend/dist/
+frontend/node_modules/
+frontend/dist/
+dist/
+*.ocp
+*.sha256
