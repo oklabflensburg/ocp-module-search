@@ -10,8 +10,8 @@ Search and Intelligent Search functionality removed from the Slim Host.
 
 - `ocp-module-search`: Python package with an SDK `ModuleDefinition` and a small
   `/api/v1/search/module-info` installation-readiness endpoint.
-- `@open-city-planner/search`: frontend package exposing only the neutral
-  `search.bootstrap` discovery capability. There is deliberately no Search UI.
+- `@open-city-planner/search`: discoverable neutral Nuxt layer with no public
+  contributions. There is deliberately no Search UI.
 - `search-0.1.0.ocp`: reproducible bundle containing both packages and the manifest.
 
 There are no database models, migrations, domain SQL, notification extensions,
@@ -33,8 +33,9 @@ pnpm test
 pnpm build
 
 cd ..
-scripts/build-bundle
-scripts/host-contract-test
+OCP_HOST_CHECKOUT=/path/to/open-city-planner scripts/build-bundle
+sha256sum -c dist/search-0.1.0.ocp.sha256
+OCP_HOST_CHECKOUT=/path/to/open-city-planner scripts/host-contract-test
 ```
 
 ## Follow-up

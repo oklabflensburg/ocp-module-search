@@ -1,33 +1,67 @@
-"""A narrow SDK test double keeps package tests independent from a Host checkout."""
+"""Small public-SDK stand-in for standalone unit tests.
+
+The real SDK is exercised by scripts/host-contract-test against the pinned Host.
+"""
 
 from __future__ import annotations
 
 import sys
 from dataclasses import dataclass
 from types import ModuleType
-from typing import Callable
+from typing import Any
 
+try:
+    import app.platform.modules.sdk  # noqa: F401
+except ModuleNotFoundError:
+    app_module = ModuleType("app")
+    platform_module = ModuleType("app.platform")
+    modules_module = ModuleType("app.platform.modules")
+    sdk_module = ModuleType("app.platform.modules.sdk")
 
-@dataclass(frozen=True)
-class ModuleDefinition:
-    id: str
-    name: str
-    version: str
-    register: Callable[[object], None]
+    @dataclass(frozen=True, slots=True)
+    class Manifest:
+        id: str
+        name: str
+        version: str
+        requires: dict[str, Any]
+        backend: dict[str, str] | None = None
+        frontend: dict[str, str] | None = None
+        capabilities: tuple[str, ...] = ()
+        persistence: None = None
 
+    def parse_manifest(data: dict[str, Any], *, origin: str | None = None) -> Manifest:
+        del origin
+        assert data["manifest_version"] == 1
+        return Manifest(
+            id=data["id"],
+            name=data["name"],
+            version=data["version"],
+            requires=data["requires"],
+            backend=data.get("backend"),
+            frontend=data.get("frontend"),
+            capabilities=tuple(data.get("capabilities", ())),
+        )
 
-class ModuleContext:
-    def include_router(self, router: object) -> None:  # pragma: no cover - protocol shape only
-        raise NotImplementedError
+    @dataclass(frozen=True, slots=True)
+    class ModuleDefinition:
+        manifest: Manifest
+        loader: type
+        origin: str
+        declared_id: str
+        persistence: None = None
+        settings: None = None
 
+    class ModuleContext:
+        pass
 
-app = ModuleType("app")
-platform = ModuleType("app.platform")
-modules = ModuleType("app.platform.modules")
-sdk = ModuleType("app.platform.modules.sdk")
-sdk.ModuleDefinition = ModuleDefinition
-sdk.ModuleContext = ModuleContext
-sys.modules.update(
-    {"app": app, "app.platform": platform, "app.platform.modules": modules,
-     "app.platform.modules.sdk": sdk}
-)
+    sdk_module.ModuleContext = ModuleContext
+    sdk_module.ModuleDefinition = ModuleDefinition
+    sdk_module.parse_manifest = parse_manifest
+    sys.modules.update(
+        {
+            "app": app_module,
+            "app.platform": platform_module,
+            "app.platform.modules": modules_module,
+            "app.platform.modules.sdk": sdk_module,
+        }
+    )

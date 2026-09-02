@@ -7,7 +7,7 @@ capabilities. The **Search module will own** search interpretation, orchestratio
 Search UI, result composition and Search-specific integrations.
 
 Version 0.1.0 is only an installation bootstrap: one readiness endpoint and one
-neutral frontend discovery capability. It has no Search engine or persistence.
+neutral, contribution-free frontend layer. It has no Search engine or persistence.
 
 ## Future provider boundary
 

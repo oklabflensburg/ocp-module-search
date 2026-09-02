@@ -1,19 +1,35 @@
-"""Open City Planner module definition and registration hook."""
+"""Composition root for the installable Search bootstrap module."""
 
-from app.platform.modules.sdk import ModuleContext, ModuleDefinition
+from app.platform.modules.sdk import ModuleContext, ModuleDefinition, parse_manifest
 
-from ocp_module_search import __version__
 from ocp_module_search.api.router import router
 
+MANIFEST = parse_manifest(
+    {
+        "manifest_version": 1,
+        "id": "search",
+        "name": "Search",
+        "version": "0.1.0",
+        "requires": {"host": ">=0.2.0,<1.0.0", "sdk": ">=1.14.0,<2.0.0"},
+        "backend": {"package": "ocp-module-search"},
+        "frontend": {"package": "@open-city-planner/search"},
+        "capabilities": ["search.module-info"],
+    },
+    origin=__name__,
+)
 
-def register(context: ModuleContext) -> None:
-    """Register the bootstrap endpoint through the public module context."""
-    context.include_router(router)
+
+class SearchModule:
+    manifest = MANIFEST
+
+    def register(self, context: ModuleContext) -> None:
+        """Register the neutral bootstrap endpoint through the public API port."""
+        context.api.include_router(router)
 
 
-module = ModuleDefinition(
-    id="search",
-    name="Search",
-    version=__version__,
-    register=register,
+DEFINITION = ModuleDefinition(
+    manifest=MANIFEST,
+    loader=SearchModule,
+    origin=__name__,
+    declared_id=MANIFEST.id,
 )

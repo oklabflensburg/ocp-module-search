@@ -16,6 +16,16 @@ def test_host_imports_use_only_public_sdk() -> None:
 
 
 def test_no_domain_persistence_or_migrations() -> None:
-    package = root = Path(__file__).parents[1]
+    package = Path(__file__).parents[1]
+    root = package
     assert not (package / "migrations").exists()
+    assert not (package / "src/ocp_module_search/migrations").exists()
     assert not any(root.glob("src/ocp_module_search/**/*model*.py"))
+
+
+def test_no_private_host_imports() -> None:
+    package = Path(__file__).parents[1] / "src" / "ocp_module_search"
+    forbidden = ("app.services", "app.models", "app.api", "app.db", "app.core", "app.integrations")
+    for source in package.rglob("*.py"):
+        contents = source.read_text(encoding="utf-8")
+        assert not any(name in contents for name in forbidden), source
