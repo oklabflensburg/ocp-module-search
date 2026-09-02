@@ -1,0 +1,17 @@
+manifest_version: 1
+id: search
+name: Search
+version: 0.1.0
+requires:
+  host: ">=0.2.0,<1.0.0"
+  sdk: ">=1.14.0,<2.0.0"
+  modules: {}
+optional:
+  modules: {}
+backend:
+  package: ocp-module-search
+frontend:
+  package: "@open-city-planner/search"
+capabilities:
+  - search.module-info
+permissions: []
